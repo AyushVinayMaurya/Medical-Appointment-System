@@ -56,7 +56,10 @@ const AppointmentForm = ({
   const onSubmit = async (values: z.infer<typeof AppointmentFormValidation>) => {
     setIsLoading(true);
 
-    const status: Status = type === "schedule" ? "scheduled" : type === "cancel" ? "cancelled" : "pending";
+    const status: Status = 
+      type === "schedule" ? "scheduled" : 
+      type === "cancel" ? "cancelled" : 
+      "pending";
 
     try {
       if (type === "create" && patientId) {
@@ -188,4 +191,5 @@ const AppointmentForm = ({
   );
 };
 
+// ✅ **Ensure Default Export**
 export default AppointmentForm;

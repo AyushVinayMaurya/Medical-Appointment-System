@@ -53,9 +53,10 @@ export const AppointmentForm = ({
   const onSubmit = async (values: z.infer<typeof AppointmentFormValidation>) => {
     setIsLoading(true);
 
-    let status: Status = "pending";
-    if (type === "schedule") status = "scheduled";
-    else if (type === "cancel") status = "cancelled";
+    // Ensure the Status type supports "scheduled" and "cancelled"
+    let status: Status = "pending" as Status;
+    if (type === "schedule") status = "scheduled" as Status;
+    else if (type === "cancel") status = "cancelled" as Status;
 
     try {
       if (type === "create" && patientId) {
@@ -63,7 +64,7 @@ export const AppointmentForm = ({
           userId,
           patient: patientId,
           primaryPhysician: values.primaryPhysician,
-          schedule: new Date(values.schedule),
+          schedule: values.schedule instanceof Date ? values.schedule : new Date(values.schedule),
           reason: values.reason,
           status,
           note: values.note,
@@ -83,7 +84,7 @@ export const AppointmentForm = ({
           appointmentId: appointment.$id,
           appointment: {
             primaryPhysician: values.primaryPhysician,
-            schedule: new Date(values.schedule),
+            schedule: values.schedule instanceof Date ? values.schedule : new Date(values.schedule),
             status,
             cancellationReason: values.cancellationReason,
           },
@@ -93,15 +94,15 @@ export const AppointmentForm = ({
         const updatedAppointment = await updateAppointment(appointmentToUpdate);
 
         if (updatedAppointment) {
-          setOpen?.(false);
+          if (setOpen) setOpen(false);
           form.reset();
         }
       }
     } catch (error) {
-      console.error("Error updating appointment:", error);
+      console.error("Error processing appointment:", error);
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   const buttonLabel = type === "cancel" ? "Cancel Appointment" : type === "schedule" ? "Schedule Appointment" : "Submit Appointment";

@@ -3,9 +3,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "react-hot-toast"; // ✅ Added for user feedback
+import { toast } from "react-hot-toast";
 import { z } from "zod";
 
 import { SelectItem } from "@/components/ui/select";
@@ -51,7 +51,7 @@ export const AppointmentForm = ({
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof AppointmentFormValidation>) => {
+  const onSubmit = useCallback(async (values: z.infer<typeof AppointmentFormValidation>) => {
     setIsLoading(true);
 
     let status: Status = "pending";
@@ -65,7 +65,7 @@ export const AppointmentForm = ({
           patient: patientId,
           primaryPhysician: values.primaryPhysician,
           schedule: values.schedule instanceof Date ? values.schedule : new Date(values.schedule),
-          reason: values.reason,
+          reason: values.reason || "",
           status,
           note: values.note,
         };
@@ -78,7 +78,7 @@ export const AppointmentForm = ({
           router.push(`/patients/${userId}/new-appointment/success?appointmentId=${newAppointment.$id}`);
         }
       } else if (appointment?.$id) {
-        const appointmentToUpdate = {
+        const updatedAppointment = await updateAppointment({
           userId,
           appointmentId: appointment.$id,
           appointment: {
@@ -88,9 +88,7 @@ export const AppointmentForm = ({
             cancellationReason: values.cancellationReason,
           },
           type,
-        };
-
-        const updatedAppointment = await updateAppointment(appointmentToUpdate);
+        });
 
         if (updatedAppointment) {
           toast.success("Appointment updated successfully!");
@@ -104,7 +102,7 @@ export const AppointmentForm = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [form, router, setOpen, type, userId, patientId, appointment]);
 
   const buttonLabel = type === "cancel" ? "Cancel Appointment" : type === "schedule" ? "Schedule Appointment" : "Submit Appointment";
 

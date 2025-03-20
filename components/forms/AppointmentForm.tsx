@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "react-hot-toast"; // ✅ Added for user feedback
 import { z } from "zod";
 
 import { SelectItem } from "@/components/ui/select";
@@ -43,7 +44,7 @@ export const AppointmentForm = ({
     resolver: zodResolver(AppointmentFormValidation),
     defaultValues: {
       primaryPhysician: appointment?.primaryPhysician || "",
-      schedule: appointment ? new Date(appointment.schedule) : new Date(),
+      schedule: appointment?.schedule ? new Date(appointment.schedule) : new Date(),
       reason: appointment?.reason || "",
       note: appointment?.note || "",
       cancellationReason: appointment?.cancellationReason || "",
@@ -53,10 +54,9 @@ export const AppointmentForm = ({
   const onSubmit = async (values: z.infer<typeof AppointmentFormValidation>) => {
     setIsLoading(true);
 
-    // Ensure the Status type supports "scheduled" and "cancelled"
-    let status: Status = "pending" as Status;
-    if (type === "schedule") status = "scheduled" as Status;
-    else if (type === "cancel") status = "cancelled" as Status;
+    let status: Status = "pending";
+    if (type === "schedule") status = "scheduled";
+    else if (type === "cancel") status = "cancelled";
 
     try {
       if (type === "create" && patientId) {
@@ -74,9 +74,8 @@ export const AppointmentForm = ({
 
         if (newAppointment) {
           form.reset();
-          router.push(
-            `/patients/${userId}/new-appointment/success?appointmentId=${newAppointment.$id}`
-          );
+          toast.success("Appointment created successfully!");
+          router.push(`/patients/${userId}/new-appointment/success?appointmentId=${newAppointment.$id}`);
         }
       } else if (appointment?.$id) {
         const appointmentToUpdate = {
@@ -94,12 +93,14 @@ export const AppointmentForm = ({
         const updatedAppointment = await updateAppointment(appointmentToUpdate);
 
         if (updatedAppointment) {
+          toast.success("Appointment updated successfully!");
           if (setOpen) setOpen(false);
           form.reset();
         }
       }
     } catch (error) {
       console.error("Error processing appointment:", error);
+      toast.error("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }

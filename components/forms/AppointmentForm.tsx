@@ -1,4 +1,6 @@
 "use client";
+import AppointmentForm from "@/components/forms/AppointmentForm";
+
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";

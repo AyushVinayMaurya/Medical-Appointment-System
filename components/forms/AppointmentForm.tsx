@@ -14,7 +14,7 @@ import {
   updateAppointment,
 } from "@/lib/actions/appointment.actions";
 import { getAppointmentSchema } from "@/lib/validation";
-import { Appointment, Status } from "@/types/appwrite.types"; // **Ensure Status is imported**
+import type { Appointment, Status } from "@/types/appwrite.types";
 import "react-datepicker/dist/react-datepicker.css";
 
 import CustomFormField, { FormFieldType } from "../CustomFormField";
@@ -53,17 +53,9 @@ export const AppointmentForm = ({
   const onSubmit = async (values: z.infer<typeof AppointmentFormValidation>) => {
     setIsLoading(true);
 
-    let status: Status; // **Ensure proper type definition**
-    switch (type) {
-      case "schedule":
-        status = "scheduled";
-        break;
-      case "cancel":
-        status = "cancelled";
-        break;
-      default:
-        status = "pending";
-    }
+    let status: Status = "pending";
+    if (type === "schedule") status = "scheduled";
+    else if (type === "cancel") status = "cancelled";
 
     try {
       if (type === "create" && patientId) {
@@ -112,17 +104,7 @@ export const AppointmentForm = ({
     setIsLoading(false);
   };
 
-  let buttonLabel;
-  switch (type) {
-    case "cancel":
-      buttonLabel = "Cancel Appointment";
-      break;
-    case "schedule":
-      buttonLabel = "Schedule Appointment";
-      break;
-    default:
-      buttonLabel = "Submit Appointment";
-  }
+  const buttonLabel = type === "cancel" ? "Cancel Appointment" : type === "schedule" ? "Schedule Appointment" : "Submit Appointment";
 
   return (
     <Form {...form}>
